@@ -12,9 +12,24 @@ final class FavoritesViewController: UIViewController {
     private let tableView = UITableView()
     private var characters: [Character] = []
 
-    private let repository = FavoritesRepository()
+    private let repository: FavoritesRepositoryProtocol
+    private let episodeService: EpisodeServiceProtocol
 
     private var isAuthenticated = false
+
+    // MARK: - INIT
+
+    init(repository: FavoritesRepositoryProtocol,
+         episodeService: EpisodeServiceProtocol) {
+
+        self.repository = repository
+        self.episodeService = episodeService
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -70,11 +85,8 @@ final class FavoritesViewController: UIViewController {
     // MARK: - LOAD FAVORITES
 
     private func loadFavorites() {
-
         characters = repository.getFavorites()
-
         print("⭐ Favorites loaded:", characters.count)
-
         tableView.reloadData()
     }
 
@@ -104,7 +116,7 @@ extension FavoritesViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView,
                    cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
 
         let character = characters[indexPath.row]
 
@@ -120,11 +132,10 @@ extension FavoritesViewController: UITableViewDataSource, UITableViewDelegate {
 
         let character = characters[indexPath.row]
 
-        // ✅ FASE 1 FIX: DI correcto
         let vm = CharacterDetailViewModel(
             character: character,
-            repository: FavoritesRepository(),
-            episodeService: EpisodeService()
+            repository: repository,
+            episodeService: episodeService
         )
 
         let vc = CharacterDetailViewController(viewModel: vm)
@@ -132,4 +143,3 @@ extension FavoritesViewController: UITableViewDataSource, UITableViewDelegate {
         navigationController?.pushViewController(vc, animated: true)
     }
 }
-

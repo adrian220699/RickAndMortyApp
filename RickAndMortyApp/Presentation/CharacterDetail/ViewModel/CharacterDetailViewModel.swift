@@ -13,6 +13,7 @@ final class CharacterDetailViewModel {
     private let character: Character
     private let repository: FavoritesRepositoryProtocol
     private let episodeService: EpisodeServiceProtocol
+    private let storage = StorageManager.shared // 🔥 NUEVO
 
     // MARK: - State
 
@@ -49,7 +50,11 @@ final class CharacterDetailViewModel {
     }
 
     var gender: String { character.gender }
-    var location: String { character.location.name }
+
+    var location: String {
+        character.location?.name ?? "Unknown"
+    }
+
     var imageURL: String { character.image }
 
     var episodeURLs: [String] {
@@ -63,10 +68,10 @@ final class CharacterDetailViewModel {
     }
 
     func toggleFavorite() {
-        if isFavorite {
-            repository.remove(id: character.id)
+        if repository.isFavorite(id: character.id) {
+            repository.deleteFavorite(id: character.id)
         } else {
-            repository.add(character: character)
+            repository.saveFavorite(character)
         }
     }
 
@@ -76,12 +81,19 @@ final class CharacterDetailViewModel {
 
         var temp: [Episode] = []
 
+        // 🔥 OBTENER EPISODIOS VISTOS DESDE CORE DATA
+        let watched = storage.getWatchedEpisodes(characterId: character.id)
+
         await withTaskGroup(of: EpisodeDTO?.self) { group in
 
-            for url in episodeURLs {
+            for urlString in episodeURLs {
 
                 group.addTask {
-                    try? await self.episodeService.fetchEpisode(from: url)
+                    guard let url = URL(string: urlString) else {
+                        return nil
+                    }
+
+                    return try? await self.episodeService.fetchEpisode(url: url)
                 }
             }
 
@@ -92,7 +104,7 @@ final class CharacterDetailViewModel {
                             id: dto.id,
                             name: dto.name,
                             episodeCode: dto.episode,
-                            isWatched: false
+                            isWatched: watched.contains(dto.id) // 🔥 CLAVE
                         )
                     )
                 }
@@ -102,10 +114,23 @@ final class CharacterDetailViewModel {
         episodes = temp.sorted { $0.id < $1.id }
     }
 
-    // MARK: - Watched episodes (local state only for now)
+    // MARK: - Watched episodes (PERSISTENTE)
 
     func toggleWatched(at index: Int) {
         guard episodes.indices.contains(index) else { return }
-        episodes[index].isWatched.toggle()
+
+        let episode = episodes[index]
+
+        // 🔥 GUARDAR EN CORE DATA
+        storage.toggleEpisodeWatched(
+            characterId: character.id,
+            episodeId: episode.id
+        )
+
+        // 🔥 SINCRONIZAR ESTADO
+        episodes[index].isWatched = storage.isEpisodeWatched(
+            characterId: character.id,
+            episodeId: episode.id
+        )
     }
 }

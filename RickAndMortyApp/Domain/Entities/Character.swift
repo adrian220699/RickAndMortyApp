@@ -4,7 +4,6 @@
 //
 //  Created by Adrian Flores Herrera on 4/27/26.
 //
-
 import Foundation
 
 struct Character {
@@ -14,7 +13,7 @@ struct Character {
     let species: String
     let gender: String
     let image: String
-    let location: Location
+    let location: Location?   // ✅ FIX
     let episodeURLs: [String]
     var isFavorite: Bool
 }

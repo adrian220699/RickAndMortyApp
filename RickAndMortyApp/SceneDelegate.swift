@@ -17,28 +17,41 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         guard let windowScene = (scene as? UIWindowScene) else { return }
 
-            let window = UIWindow(windowScene: windowScene)
+        let window = UIWindow(windowScene: windowScene)
 
-            // SERVICES
-            let characterService = CharacterService()
-            let episodeService = EpisodeService()
+        // MARK: - CORE
+        let networkManager = NetworkManager()
 
-            // REPOSITORIES
-            let favoritesRepository = FavoritesRepository()
+        // MARK: - SERVICES
+        let characterService = CharacterService(networkManager: networkManager)
+        let episodeService = EpisodeService(networkManager: networkManager)
 
-            // VIEW MODELS
-            let listViewModel = CharacterListViewModel(service: characterService)
+        // MARK: - REPOSITORIES
+        let characterRepository = CharacterRepository(service: characterService)
+        let favoritesRepository = FavoritesRepository()
 
-            let rootVC = CharacterListViewController(viewModel: listViewModel)
+        // MARK: - USE CASES
+        let getCharactersUseCase = GetCharactersUseCase(repository: characterRepository)
 
-            let navigation = UINavigationController(rootViewController: rootVC)
+        // MARK: - VIEWMODEL
+        let listViewModel = CharacterListViewModel(
+            getCharactersUseCase: getCharactersUseCase
+        )
 
-            window.rootViewController = navigation
-            self.window = window
-            window.makeKeyAndVisible()
-     
+        // MARK: - ROOT VC (🔥 FIX)
+        let rootVC = CharacterListViewController(
+            viewModel: listViewModel,
+            episodeService: episodeService,
+            favoritesRepository: favoritesRepository
+        )
+
+        let navigation = UINavigationController(rootViewController: rootVC)
+
+        window.rootViewController = navigation
+        self.window = window
+        window.makeKeyAndVisible()
     }
-
+    
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
         // This occurs shortly after the scene enters the background, or when its session is discarded.

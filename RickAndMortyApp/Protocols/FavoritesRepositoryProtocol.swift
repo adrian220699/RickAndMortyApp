@@ -6,8 +6,8 @@
 //
 
 protocol FavoritesRepositoryProtocol {
-    func add(character: Character)
-    func remove(id: Int)
     func getFavorites() -> [Character]
+    func saveFavorite(_ character: Character)
+    func deleteFavorite(id: Int)
     func isFavorite(id: Int) -> Bool
 }

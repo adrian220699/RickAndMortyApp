@@ -5,6 +5,8 @@
 //  Created by Adrian Flores Herrera on 4/28/26.
 //
 
+import Foundation
+
 protocol EpisodeServiceProtocol {
-    func fetchEpisode(from url: String) async throws -> EpisodeDTO
+    func fetchEpisode(url: URL) async throws -> EpisodeDTO
 }

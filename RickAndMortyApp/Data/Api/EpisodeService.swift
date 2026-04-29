@@ -7,16 +7,15 @@
 
 import Foundation
 
-final class EpisodeService : EpisodeServiceProtocol {
+final class EpisodeService: EpisodeServiceProtocol {
 
-    func fetchEpisode(from url: String) async throws -> EpisodeDTO {
+    private let networkManager: NetworkManager
 
-        guard let url = URL(string: url) else {
-            throw URLError(.badURL)
-        }
+    init(networkManager: NetworkManager) {
+        self.networkManager = networkManager
+    }
 
-        let (data, _) = try await URLSession.shared.data(from: url)
-
-        return try JSONDecoder().decode(EpisodeDTO.self, from: data)
+    func fetchEpisode(url: URL) async throws -> EpisodeDTO {
+        return try await networkManager.request(url: url)
     }
 }

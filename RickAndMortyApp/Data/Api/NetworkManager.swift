@@ -4,13 +4,14 @@
 //
 //  Created by Adrian Flores Herrera on 4/27/26.
 //
-
 import Foundation
 
 final class NetworkManager {
 
-    static let shared = NetworkManager()
-    private init() {}
+    // MARK: - INIT (injectable)
+    init() {}
+
+    // MARK: - GENERIC REQUEST
 
     func request<T: Decodable>(
         url: URL
@@ -18,6 +19,7 @@ final class NetworkManager {
 
         let (data, response) = try await URLSession.shared.data(from: url)
 
+        // Validate response
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NetworkError.invalidResponse
         }
@@ -26,9 +28,11 @@ final class NetworkManager {
             throw NetworkError.serverError(statusCode: httpResponse.statusCode)
         }
 
+        // Decode
         do {
-            let decoded = try JSONDecoder().decode(T.self, from: data)
-            return decoded
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .useDefaultKeys
+            return try decoder.decode(T.self, from: data)
         } catch {
             throw NetworkError.decodingError
         }

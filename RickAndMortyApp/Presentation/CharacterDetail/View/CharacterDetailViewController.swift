@@ -82,7 +82,6 @@ final class CharacterDetailViewController: UIViewController,
     }
 
     private func updateFavoriteUI() {
-
         let imageName = viewModel.isFavorite ? "heart.fill" : "heart"
         favoriteButton.setImage(UIImage(systemName: imageName), for: .normal)
     }
@@ -142,6 +141,9 @@ final class CharacterDetailViewController: UIViewController,
         tableView.backgroundColor = .clear
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 44
+
+        // 🔥 FIX IMPORTANTE: evitar celdas duplicadas raras
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "episodeCell")
     }
 
     // MARK: - Image
@@ -195,19 +197,23 @@ final class CharacterDetailViewController: UIViewController,
 
         let episode = viewModel.episodes[indexPath.row]
 
-        let cell = UITableViewCell(
-            style: .subtitle,
-            reuseIdentifier: "episodeCell"
+        // 🔥 FIX: usar dequeueReusableCell correctamente
+        let cell = tableView.dequeueReusableCell(
+            withIdentifier: "episodeCell",
+            for: indexPath
         )
 
         cell.textLabel?.text = episode.name
         cell.detailTextLabel?.text = episode.episodeCode
 
+        // 🔥 UI PRO
         if episode.isWatched {
             cell.accessoryType = .checkmark
+            cell.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.1)
             cell.textLabel?.textColor = .systemGray
         } else {
             cell.accessoryType = .none
+            cell.backgroundColor = .clear
             cell.textLabel?.textColor = .label
         }
 
@@ -218,6 +224,8 @@ final class CharacterDetailViewController: UIViewController,
                    didSelectRowAt indexPath: IndexPath) {
 
         viewModel.toggleWatched(at: indexPath.row)
+
+        // 🔥 FIX: refrescar solo esa celda (mejor performance + animación)
         tableView.reloadRows(at: [indexPath], with: .automatic)
     }
 }

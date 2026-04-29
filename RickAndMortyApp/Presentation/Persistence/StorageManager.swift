@@ -6,66 +6,95 @@
 //
 
 import Foundation
+internal import CoreData
 
 final class StorageManager {
 
     static let shared = StorageManager()
     private init() {}
 
-    private let favoritesKey = "favorite_characters"
-    private let watchedPrefix = "watched_episodes_"
+    let container: NSPersistentContainer = {
+        let container = NSPersistentContainer(name: "RickAndMortyModel")
 
-    private let defaults = UserDefaults.standard
-
-    // MARK: - FAVORITES
-
-    func getFavorites() -> [Int] {
-        defaults.array(forKey: favoritesKey) as? [Int] ?? []
-    }
-
-    func isFavorite(id: Int) -> Bool {
-        getFavorites().contains(id)
-    }
-
-    func toggleFavorite(id: Int) {
-
-        var current = getFavorites()
-
-        if let index = current.firstIndex(of: id) {
-            current.remove(at: index)
-        } else {
-            current.append(id)
+        container.loadPersistentStores { _, error in
+            if let error {
+                fatalError("CoreData error: \(error)")
+            }
         }
 
-        defaults.set(current, forKey: favoritesKey)
+        return container
+    }()
+
+    var context: NSManagedObjectContext {
+        container.viewContext
     }
 
-    // MARK: - EPISODES
+    // MARK: - SAVE
+
+    func saveContext() {
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                print("❌ CoreData save error:", error)
+            }
+        }
+    }
+
+    // MARK: - WATCHED EPISODES
 
     func getWatchedEpisodes(characterId: Int) -> [Int] {
-        let key = watchedPrefix + "\(characterId)"
-        return defaults.array(forKey: key) as? [Int] ?? []
+
+        let request = NSFetchRequest<WatchedEpisodeEntity>(
+            entityName: "WatchedEpisodeEntity"
+        )
+
+        request.predicate = NSPredicate(format: "characterId == %d", characterId)
+
+        let result = (try? context.fetch(request)) ?? []
+
+        return result.map { Int($0.id) }
     }
 
     func isEpisodeWatched(characterId: Int, episodeId: Int) -> Bool {
-        getWatchedEpisodes(characterId: characterId).contains(episodeId)
-    }
 
-    func saveWatchedEpisodes(characterId: Int, ids: [Int]) {
-        let key = watchedPrefix + "\(characterId)"
-        defaults.set(ids, forKey: key)
+        let request = NSFetchRequest<WatchedEpisodeEntity>(
+            entityName: "WatchedEpisodeEntity"
+        )
+
+        request.predicate = NSPredicate(
+            format: "characterId == %d AND id == %d",
+            characterId,
+            episodeId
+        )
+
+        let result = (try? context.fetch(request)) ?? []
+
+        return !result.isEmpty
     }
 
     func toggleEpisodeWatched(characterId: Int, episodeId: Int) {
 
-        var current = getWatchedEpisodes(characterId: characterId)
+        let request = NSFetchRequest<WatchedEpisodeEntity>(
+            entityName: "WatchedEpisodeEntity"
+        )
 
-        if let index = current.firstIndex(of: episodeId) {
-            current.remove(at: index)
+        request.predicate = NSPredicate(
+            format: "characterId == %d AND id == %d",
+            characterId,
+            episodeId
+        )
+
+        let result = (try? context.fetch(request)) ?? []
+
+        if let existing = result.first {
+            context.delete(existing)
         } else {
-            current.append(episodeId)
+            let entity = WatchedEpisodeEntity(context: context)
+            entity.id = Int64(episodeId)
+            entity.characterId = Int64(characterId)
         }
 
-        saveWatchedEpisodes(characterId: characterId, ids: current)
+        saveContext()
     }
 }

@@ -44,26 +44,29 @@ final class CharacterMapViewController: UIViewController {
 
         for character in characters {
 
+            guard let location = character.location else { continue }
+
             let coordinate = CLLocationCoordinate2D(
-                latitude: character.location.latitude,
-                longitude: character.location.longitude
+                latitude: location.latitude,
+                longitude: location.longitude
             )
 
             let annotation = MKPointAnnotation()
             annotation.title = character.name
-            annotation.subtitle = character.location.name
+            annotation.subtitle = location.name
             annotation.coordinate = coordinate
 
             mapView.addAnnotation(annotation)
         }
 
-        // centrar en el primero
-        if let first = characters.first {
+        // centrar en el primero válido
+        if let first = characters.first,
+           let location = first.location {
 
             let region = MKCoordinateRegion(
                 center: CLLocationCoordinate2D(
-                    latitude: first.location.latitude,
-                    longitude: first.location.longitude
+                    latitude: location.latitude,
+                    longitude: location.longitude
                 ),
                 span: MKCoordinateSpan(latitudeDelta: 20, longitudeDelta: 20)
             )
