@@ -11,6 +11,6 @@ enum CharacterListState {
     case idle
     case loading
     case success([Character])
-    case empty   // 👈 CORREGIDO
+    case empty  
     case error(String)
 }

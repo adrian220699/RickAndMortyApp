@@ -36,7 +36,7 @@ final class StorageManager {
             do {
                 try context.save()
             } catch {
-                print("❌ CoreData save error:", error)
+                print("CoreData save error:", error)
             }
         }
     }

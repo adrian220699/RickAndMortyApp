@@ -95,7 +95,7 @@ final class CharacterListViewModel {
     @MainActor
     private func notify(_ state: CharacterListState) {
         notifyCount += 1
-        print("📣 notify #\(notifyCount):", state)
+        print("notify #\(notifyCount):", state)
 
         onStateChange?(state)
     }

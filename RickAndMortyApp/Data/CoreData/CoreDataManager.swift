@@ -32,7 +32,7 @@ final class CoreDataManager {
         do {
             try context.save()
         } catch {
-            print("❌ Save error:", error)
+            print("Save error:", error)
         }
     }
 }

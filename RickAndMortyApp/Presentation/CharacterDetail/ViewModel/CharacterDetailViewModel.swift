@@ -13,7 +13,7 @@ final class CharacterDetailViewModel {
     private let character: Character
     private let repository: FavoritesRepositoryProtocol
     private let episodeService: EpisodeServiceProtocol
-    private let storage = StorageManager.shared // 🔥 NUEVO
+    private let storage = StorageManager.shared
 
     // MARK: - State
 
@@ -81,7 +81,6 @@ final class CharacterDetailViewModel {
 
         var temp: [Episode] = []
 
-        // 🔥 OBTENER EPISODIOS VISTOS DESDE CORE DATA
         let watched = storage.getWatchedEpisodes(characterId: character.id)
 
         await withTaskGroup(of: EpisodeDTO?.self) { group in
@@ -104,7 +103,7 @@ final class CharacterDetailViewModel {
                             id: dto.id,
                             name: dto.name,
                             episodeCode: dto.episode,
-                            isWatched: watched.contains(dto.id) // 🔥 CLAVE
+                            isWatched: watched.contains(dto.id)
                         )
                     )
                 }
@@ -121,13 +120,11 @@ final class CharacterDetailViewModel {
 
         let episode = episodes[index]
 
-        // 🔥 GUARDAR EN CORE DATA
         storage.toggleEpisodeWatched(
             characterId: character.id,
             episodeId: episode.id
         )
 
-        // 🔥 SINCRONIZAR ESTADO
         episodes[index].isWatched = storage.isEpisodeWatched(
             characterId: character.id,
             episodeId: episode.id

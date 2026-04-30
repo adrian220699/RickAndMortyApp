@@ -86,7 +86,7 @@ final class FavoritesViewController: UIViewController {
 
     private func loadFavorites() {
         characters = repository.getFavorites()
-        print("⭐ Favorites loaded:", characters.count)
+        print("Favorites loaded:", characters.count)
         tableView.reloadData()
     }
 
@@ -95,7 +95,7 @@ final class FavoritesViewController: UIViewController {
     private func showAccessDenied() {
 
         let label = UILabel()
-        label.text = "🔒 Acceso denegado"
+        label.text = "Acceso denegado"
         label.textAlignment = .center
         label.font = .systemFont(ofSize: 20, weight: .medium)
         label.frame = view.bounds

@@ -25,14 +25,26 @@ final class FavoritesRepository: FavoritesRepositoryProtocol {
         }
 
         return result.map { entity in
-            Character(
+
+            let location: Location? = {
+                if entity.locationName != nil {
+                    return Location(
+                        name: entity.locationName ?? "",
+                        latitude: entity.latitude,
+                        longitude: entity.longitude
+                    )
+                }
+                return nil
+            }()
+
+            return Character(
                 id: Int(entity.id),
                 name: entity.name ?? "",
                 status: .unknown,
                 species: "",
                 gender: "",
                 image: entity.image ?? "",
-                location: nil,
+                location: location,
                 episodeURLs: [],
                 isFavorite: true
             )
@@ -49,7 +61,13 @@ final class FavoritesRepository: FavoritesRepositoryProtocol {
         entity.name = character.name
         entity.image = character.image
 
-        storage.saveContext()   // ✅ FIX (ahora sí existe en StorageManager)
+        if let location = character.location {
+            entity.latitude = location.latitude
+            entity.longitude = location.longitude
+            entity.locationName = location.name
+        }
+
+        storage.saveContext()
     }
 
     // MARK: - DELETE

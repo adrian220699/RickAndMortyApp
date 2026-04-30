@@ -23,10 +23,9 @@ final class BiometricManager {
 
         let policy: LAPolicy = .deviceOwnerAuthentication
 
-        // 🔥 DEBUG IMPORTANTE
         guard context.canEvaluatePolicy(policy, error: &error) else {
 
-            print("❌ canEvaluatePolicy falló:", error?.localizedDescription ?? "sin error")
+            print("canEvaluatePolicy falló:", error?.localizedDescription ?? "sin error")
 
             DispatchQueue.main.async {
                 completion(false)
@@ -37,10 +36,10 @@ final class BiometricManager {
         context.evaluatePolicy(policy, localizedReason: reason) { success, error in
 
             if let error = error {
-                print("❌ evaluatePolicy error:", error.localizedDescription)
+                print("evaluatePolicy error:", error.localizedDescription)
             }
 
-            print("🔐 Biometría resultado:", success)
+            print("Biometría resultado:", success)
 
             DispatchQueue.main.async {
                 completion(success)
